@@ -1,0 +1,20 @@
+{
+  "name": "smart-home-backend",
+  "version": "1.0.0",
+  "description": "Smart Home Multi-Area Monitoring System (Fuseki + Node.js)",
+  "main": "serverThesis.js",
+  "scripts": {
+    "start": "node serverThesis.js",
+    "notifier": "node cook-notifier.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2",
+    "mysql2": "^3.9.4",
+    "nodemailer": "^6.9.8",
+    "node-telegram-bot-api": "^0.61.0"
+  }
+}

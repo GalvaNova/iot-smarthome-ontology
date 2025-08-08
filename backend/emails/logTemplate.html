@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Log Monitoring Smart Home</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        color: #333;
+        background-color: #f8f9fa;
+        padding: 20px;
+      }
+      h2 {
+        color: #0056b3;
+      }
+      .section {
+        margin-bottom: 25px;
+      }
+      .section p {
+        margin: 5px 0;
+      }
+      .highlight {
+        color: #d63384;
+        font-weight: bold;
+      }
+      .footer {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-top: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>📊 Laporan Monitoring Smart Home</h2>
+
+    <div class="section">
+      <p><strong>Tanggal:</strong> {{DATE}}</p>
+      <p><strong>Waktu:</strong> {{TIME}}</p>
+      <p><strong>Area:</strong> <span class="highlight">{{AREA}}</span></p>
+    </div>
+
+    <div class="section">
+      <p><strong>Ringkasan:</strong></p>
+      <p>{{SUMMARY}}</p>
+    </div>
+
+    <div class="section">
+      <p><strong>Log Data Terlampir:</strong></p>
+      <p>
+        Silakan periksa file log (.csv atau .txt) yang terlampir dalam email
+        ini.
+      </p>
+    </div>
+
+    <div class="footer">
+      Email ini dikirim secara otomatis oleh sistem monitoring berbasis Semantic
+      Web. <br />
+      Hubungi admin jika Anda tidak mengenali email ini.
+    </div>
+  </body>
+</html>

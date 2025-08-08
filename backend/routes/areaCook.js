@@ -1,0 +1,113 @@
+// routes/areaCook.js
+const express = require("express");
+const axios = require("axios");
+const router = express.Router();
+
+const FUSEKI_UPDATE = "http://192.168.43.238:3030/project-1/update";
+const FUSEKI_QUERY = "http://192.168.43.238:3030/project-1/query";
+const REASONER_URL = "http://localhost:4567/reasoning/cook";
+
+// Timestamp untuk status koneksi
+let lastUpdateCook = 0;
+
+router.post("/sensorCook", async (req, res) => {
+  const { temp, flame, jarak, ppm } = req.body;
+  if ([temp, flame, jarak, ppm].some((v) => v === undefined)) {
+    return res.status(400).json({ error: "Missing sensor data" });
+  }
+
+  lastUpdateCook = Date.now();
+
+  // SPARQL update ke Fuseki (opsional, jika ingin menyimpan sensor data)
+  const updateQuery = `
+    PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    DELETE {
+      :read_AC_Temp :ACdp_hasTEMPvalue ?t .
+      :read_AC_Flame :ACdp_hasFIREvalue ?f .
+      :read_AC_Dist :ACdp_hasDISTvalue ?j .
+      :read_AC_Ppm :ACdp_hasPPMvalue ?p .
+    }
+    INSERT {
+      :read_AC_Temp :ACdp_hasTEMPvalue "${temp}"^^xsd:float .
+      :read_AC_Flame :ACdp_hasFIREvalue "${flame}"^^xsd:float .
+      :read_AC_Dist :ACdp_hasDISTvalue "${jarak}"^^xsd:float .
+      :read_AC_Ppm :ACdp_hasPPMvalue "${ppm}"^^xsd:float .
+    }
+    WHERE {
+      OPTIONAL { :read_AC_Temp :ACdp_hasTEMPvalue ?t }
+      OPTIONAL { :read_AC_Flame :ACdp_hasFIREvalue ?f }
+      OPTIONAL { :read_AC_Dist :ACdp_hasDISTvalue ?j }
+      OPTIONAL { :read_AC_Ppm :ACdp_hasPPMvalue ?p }
+    }
+  `;
+
+  try {
+    // Simpan data ke Fuseki (jika perlu log sensor)
+    await axios.post(
+      FUSEKI_UPDATE,
+      `update=${encodeURIComponent(updateQuery)}`,
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    // Panggil reasoner service (POST dengan data sensor)
+    const reasoningResponse = await axios.post(REASONER_URL, {
+      temp,
+      flame,
+      jarak,
+      ppm,
+    });
+
+    res.json({
+      message: "Sensor data processed and reasoning completed",
+      inferred: reasoningResponse.data,
+    });
+  } catch (err) {
+    console.error("❌ Error in /sensorCook:", err.message);
+    res.status(500).json({ error: "Failed to update or trigger reasoning" });
+  }
+});
+
+// Endpoint status actuator
+router.get("/statusCook", async (req, res) => {
+  const query = `
+    PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
+    SELECT ?fan ?buzzer ?act ?timer WHERE {
+      OPTIONAL { :act_AC_Exhaust :M_ActionStatus ?fan }
+      OPTIONAL { :act_AC_Buzzer :M_ActionStatus ?buzzer }
+      OPTIONAL { :fnc_cookAct :M_ActivityStatus ?act }
+      OPTIONAL { :fnc_timing :ACop_hasTimerStatus ?timer }
+    }
+  `;
+
+  try {
+    const r = await axios.get(FUSEKI_QUERY, {
+      params: { query },
+      headers: { Accept: "application/sparql-results+json" },
+    });
+
+    const b = r.data.results.bindings[0] || {};
+
+    const fan = b.fan?.value.split("#")[1] ?? "UNKNOWN";
+    const buzzer = b.buzzer?.value.split("#")[1] ?? "UNKNOWN";
+    const activity = b.act?.value.split("#")[1] ?? "UNKNOWN";
+    const timer = b.timer?.value.split("#")[1] ?? "UNKNOWN";
+
+    res.json({
+      FAN: fan,
+      BUZZER: buzzer,
+      ACTIVITY: activity,
+      TIMER: timer,
+    });
+  } catch (err) {
+    console.error("❌ statusCook error:", err.message);
+    res.status(500).json({ error: true });
+  }
+});
+
+// Endpoint pengecekan status IoT
+router.get("/latest", (req, res) => {
+  res.json({ lastUpdate: lastUpdateCook });
+});
+
+module.exports = router;
