@@ -6,3 +6,5 @@ const pool = mysql.createPool({
   database: "email", // isi sesuai DB MySQL
 });
 module.exports = pool;
+
+// db email
