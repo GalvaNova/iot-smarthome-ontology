@@ -8,9 +8,9 @@ import openllet.owlapi.OpenlletReasoner;
 import openllet.owlapi.OpenlletReasonerFactory;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
-import java.io.*;
+import java.io.File;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -19,70 +19,45 @@ import java.util.Optional;
 public class SmartHomeReasoner {
 
     private static final String ONTO_NS = "http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#";
-    private static final String OWL_FILE_PATH = "ontology/thesis-1.owl";
+    private static final String OWL_FILE_PATH = "ontology/thesis-1.owl"; // lokal
     private static final String FUSEKI_UPDATE_URL = "http://localhost:3030/project-1/update";
 
     public static void main(String[] args) {
         port(4567);
 
-        // GET endpoint
+        // Reasoning untuk areaCook
         get("/reasoning/cook", (req, res) -> {
             res.type("application/json");
             return runReasoning("act_AC_Buzzer", "act_AC_Exhaust", "fnc_cookAct", "fnc_timing");
         });
 
-        // POST endpoint untuk data sensor
-        post("/reasoning/cook", (req, res) -> {
-            JsonObject body = JsonParser.parseString(req.body()).getAsJsonObject();
-            float temp = body.get("temp").getAsFloat();
-            float flame = body.get("flame").getAsFloat();
-            float jarak = body.get("jarak").getAsFloat();
-            float ppm = body.get("ppm").getAsFloat();
-
+        // Reasoning untuk areaWash
+        get("/reasoning/wash", (req, res) -> {
             res.type("application/json");
-            return runReasoningWithSensor(temp, flame, jarak, ppm,
-                    "act_AC_Buzzer", "act_AC_Exhaust", "fnc_cookAct", "fnc_timing");
+            return runReasoning("act_AS_Valve");
+        });
+
+        // Reasoning untuk areaInout
+        get("/reasoning/inout", (req, res) -> {
+            res.type("application/json");
+            return runReasoning("act_AE_Lamp");
         });
 
         System.out.println("✅ Reasoner service running at http://localhost:4567");
     }
 
-    private static String runReasoningWithSensor(float temp, float flame, float jarak, float ppm, String... individuals) throws Exception {
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new File(OWL_FILE_PATH));
-        OWLDataFactory df = manager.getOWLDataFactory();
-
-        // Tambahkan data sensor sebagai assertion
-        addSensorData(manager, ontology, df, "read_AC_Temp", "ACdp_hasTEMPvalue", temp);
-        addSensorData(manager, ontology, df, "read_AC_Flame", "ACdp_hasFIREvalue", flame);
-        addSensorData(manager, ontology, df, "read_AC_Dist", "ACdp_hasDISTvalue", jarak);
-        addSensorData(manager, ontology, df, "read_AC_Ppm", "ACdp_hasPPMvalue", ppm);
-
-        return runReasoning(manager, ontology, df, individuals);
-    }
-
-    private static void addSensorData(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory df,
-                                       String individual, String property, float value) {
-        OWLNamedIndividual ind = df.getOWLNamedIndividual(IRI.create(ONTO_NS + individual));
-        OWLDataProperty prop = df.getOWLDataProperty(IRI.create(ONTO_NS + property));
-        OWLLiteral val = df.getOWLLiteral(value);
-        OWLAxiom axiom = df.getOWLDataPropertyAssertionAxiom(prop, ind, val);
-        manager.addAxiom(ontology, axiom);
-    }
-
+    /**
+     * Jalankan reasoning untuk beberapa individual
+     */
     private static String runReasoning(String... individuals) throws Exception {
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new File(OWL_FILE_PATH));
         OWLDataFactory df = manager.getOWLDataFactory();
-        return runReasoning(manager, ontology, df, individuals);
-    }
 
-    private static String runReasoning(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory df,
-                                       String... individuals) throws Exception {
         OpenlletReasoner reasoner = OpenlletReasonerFactory.getInstance().createReasoner(ontology);
         reasoner.precomputeInferences();
 
-        OWLObjectProperty actionProp = df.getOWLObjectProperty(IRI.create(ONTO_NS + "M_ActionStatus"));
+        OWLObjectProperty actionProp = df.getOWLObjectProperty(IRI.create(ONTO_NS + "M_hasActionStatus"));
         OWLObjectProperty activityProp = df.getOWLObjectProperty(IRI.create(ONTO_NS + "M_ActivityStatus"));
         OWLObjectProperty timerProp = df.getOWLObjectProperty(IRI.create(ONTO_NS + "ACop_hasTimerStatus"));
 
@@ -91,16 +66,19 @@ public class SmartHomeReasoner {
         for (String indName : individuals) {
             OWLNamedIndividual ind = df.getOWLNamedIndividual(IRI.create(ONTO_NS + indName));
 
+            // Cek action
             getFirstValue(reasoner, ind, actionProp).ifPresent(val -> {
                 result.addProperty(indName + "_action", val);
-                updateFuseki(indName, "M_ActionStatus", val);
+                updateFuseki(indName, "M_hasActionStatus", val);
             });
 
+            // Cek activity
             getFirstValue(reasoner, ind, activityProp).ifPresent(val -> {
                 result.addProperty(indName + "_activity", val);
                 updateFuseki(indName, "M_ActivityStatus", val);
             });
 
+            // Cek timer
             getFirstValue(reasoner, ind, timerProp).ifPresent(val -> {
                 result.addProperty(indName + "_timer", val);
                 updateFuseki(indName, "ACop_hasTimerStatus", val);
@@ -110,6 +88,9 @@ public class SmartHomeReasoner {
         return result.toString();
     }
 
+    /**
+     * Ambil nilai pertama dari object property
+     */
     private static Optional<String> getFirstValue(OpenlletReasoner reasoner, OWLNamedIndividual ind, OWLObjectProperty prop) {
         return reasoner.getObjectPropertyValues(ind, prop)
                 .entities()
@@ -117,6 +98,9 @@ public class SmartHomeReasoner {
                 .map(val -> val.getIRI().getShortForm());
     }
 
+    /**
+     * Update hasil reasoning ke Fuseki
+     */
     private static void updateFuseki(String subject, String predicate, String inferredValue) {
         try {
             String update = String.format("""
