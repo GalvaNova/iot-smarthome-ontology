@@ -5,11 +5,11 @@ const router = express.Router();
 
 const FUSEKI_UPDATE = "http://192.168.43.238:3030/project-1/update";
 const FUSEKI_QUERY = "http://192.168.43.238:3030/project-1/query";
-const REASONER_URL = "http://localhost:4567/reasoning/cook";
+const REASONER_URL = "http://localhost:4567/reasoning/cook"; // Java Reasoner
 
-// Timestamp untuk status koneksi
 let lastUpdateCook = 0;
 
+// ==================== POST Sensor Data ====================
 router.post("/sensorCook", async (req, res) => {
   const { temp, flame, jarak, ppm } = req.body;
   if ([temp, flame, jarak, ppm].some((v) => v === undefined)) {
@@ -18,7 +18,7 @@ router.post("/sensorCook", async (req, res) => {
 
   lastUpdateCook = Date.now();
 
-  // SPARQL update ke Fuseki (opsional, jika ingin menyimpan sensor data)
+  // SPARQL update ke Fuseki
   const updateQuery = `
     PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -43,32 +43,24 @@ router.post("/sensorCook", async (req, res) => {
   `;
 
   try {
-    // Simpan data ke Fuseki (jika perlu log sensor)
+    // Simpan sensor data ke Fuseki
     await axios.post(
       FUSEKI_UPDATE,
       `update=${encodeURIComponent(updateQuery)}`,
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    // Panggil reasoner service (POST dengan data sensor)
-    const reasoningResponse = await axios.post(REASONER_URL, {
-      temp,
-      flame,
-      jarak,
-      ppm,
-    });
+    // Trigger reasoning
+    await axios.get(REASONER_URL);
 
-    res.json({
-      message: "Sensor data processed and reasoning completed",
-      inferred: reasoningResponse.data,
-    });
+    res.json({ message: "Sensor data stored & reasoning triggered" });
   } catch (err) {
     console.error("❌ Error in /sensorCook:", err.message);
     res.status(500).json({ error: "Failed to update or trigger reasoning" });
   }
 });
 
-// Endpoint status actuator
+// ==================== GET Status Actuator ====================
 router.get("/statusCook", async (req, res) => {
   const query = `
     PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
@@ -78,6 +70,7 @@ router.get("/statusCook", async (req, res) => {
       OPTIONAL { :fnc_cookAct :M_ActivityStatus ?act }
       OPTIONAL { :fnc_timing :ACop_hasTimerStatus ?timer }
     }
+    LIMIT 1
   `;
 
   try {
@@ -105,7 +98,7 @@ router.get("/statusCook", async (req, res) => {
   }
 });
 
-// Endpoint pengecekan status IoT
+// ==================== GET Latest Sensor Update ====================
 router.get("/latest", (req, res) => {
   res.json({ lastUpdate: lastUpdateCook });
 });
