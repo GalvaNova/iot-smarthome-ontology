@@ -8,6 +8,7 @@ import openllet.owlapi.OpenlletReasoner;
 import openllet.owlapi.OpenlletReasonerFactory;
 
 import com.google.gson.JsonObject;
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -18,32 +19,51 @@ import java.util.Optional;
 
 public class SmartHomeReasoner {
 
-    private static final String ONTO_NS = "http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#";
-    private static final String OWL_FILE_PATH = "ontology/thesis-1.owl"; // lokal
-    private static final String FUSEKI_UPDATE_URL = "http://localhost:3030/project-1/update";
+    private static final Dotenv dotenv = Dotenv.load();
+
+    // Konfigurasi dari .env
+    private static final String ONTO_NS = dotenv.get("ONTO_NS", "http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#");
+    private static final String OWL_FILE_PATH = dotenv.get("OWL_FILE_PATH", "ontology/thesis-1.owl");
+    private static final String FUSEKI_UPDATE_URL = dotenv.get("FUSEKI_UPDATE_URL", "http://localhost:3030/project-1/update");
+    private static final int SERVER_PORT = Integer.parseInt(dotenv.get("REASONER_PORT", "4567"));
 
     public static void main(String[] args) {
-        port(4567);
+        port(SERVER_PORT);
 
-        // Reasoning untuk areaCook
+        // Endpoint reasoning areaCook
         get("/reasoning/cook", (req, res) -> {
             res.type("application/json");
-            return runReasoning("act_AC_Buzzer", "act_AC_Exhaust", "fnc_cookAct", "fnc_timing");
+            try {
+                return runReasoning("act_AC_Buzzer", "act_AC_Exhaust", "fnc_cookAct", "fnc_timing");
+            } catch (Exception e) {
+                res.status(500);
+                return "{\"error\": \"Reasoning cook gagal: " + e.getMessage() + "\"}";
+            }
         });
 
-        // Reasoning untuk areaWash
+        // Endpoint reasoning areaWash
         get("/reasoning/wash", (req, res) -> {
             res.type("application/json");
-            return runReasoning("act_AS_Valve");
+            try {
+                return runReasoning("act_AS_Valve");
+            } catch (Exception e) {
+                res.status(500);
+                return "{\"error\": \"Reasoning wash gagal: " + e.getMessage() + "\"}";
+            }
         });
 
-        // Reasoning untuk areaInout
+        // Endpoint reasoning areaInout
         get("/reasoning/inout", (req, res) -> {
             res.type("application/json");
-            return runReasoning("act_AE_Lamp");
+            try {
+                return runReasoning("act_AE_Lamp");
+            } catch (Exception e) {
+                res.status(500);
+                return "{\"error\": \"Reasoning inout gagal: " + e.getMessage() + "\"}";
+            }
         });
 
-        System.out.println("✅ Reasoner service running at http://localhost:4567");
+        System.out.println("✅ Reasoner service running at http://localhost:" + SERVER_PORT);
     }
 
     /**
@@ -104,11 +124,11 @@ public class SmartHomeReasoner {
     private static void updateFuseki(String subject, String predicate, String inferredValue) {
         try {
             String update = String.format("""
-                PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
+                PREFIX : <%s>
                 DELETE { :%s :%s ?s }
                 INSERT { :%s :%s :%s }
                 WHERE { OPTIONAL { :%s :%s ?s } }
-            """, subject, predicate, subject, predicate, inferredValue, subject, predicate);
+            """, ONTO_NS, subject, predicate, subject, predicate, inferredValue, subject, predicate);
 
             HttpURLConnection conn = (HttpURLConnection) new URL(FUSEKI_UPDATE_URL).openConnection();
             conn.setRequestMethod("POST");

@@ -1,11 +1,17 @@
 // routes/areaCook.js
 const express = require("express");
 const axios = require("axios");
+require("dotenv").config();
+
 const router = express.Router();
 
-const FUSEKI_UPDATE = "http://192.168.43.238:3030/project-1/update";
-const FUSEKI_QUERY = "http://192.168.43.238:3030/project-1/query";
-const REASONER_URL = "http://localhost:4567/reasoning/cook"; // Java Reasoner
+// === Konfigurasi dari .env ===
+const FUSEKI_UPDATE =
+  process.env.FUSEKI_UPDATE_URL || "http://localhost:3030/project-1/update";
+const FUSEKI_QUERY =
+  process.env.FUSEKI_QUERY_URL || "http://localhost:3030/project-1/query";
+const REASONER_URL =
+  process.env.REASONER_URL || "http://localhost:4567/reasoning/cook";
 
 let lastUpdateCook = 0;
 
