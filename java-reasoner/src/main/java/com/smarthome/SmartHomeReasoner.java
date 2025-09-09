@@ -4,11 +4,12 @@ import static spark.Spark.*;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
+
+import io.github.cdimascio.dotenv.Dotenv;
 import openllet.owlapi.OpenlletReasoner;
 import openllet.owlapi.OpenlletReasonerFactory;
 
 import com.google.gson.JsonObject;
-import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -19,96 +20,75 @@ import java.util.Optional;
 
 public class SmartHomeReasoner {
 
-    // private static final Dotenv dotenv = Dotenv.load();
-    private static final Dotenv dotenv = Dotenv.configure()
-    .directory("../")   // cari .env di parent folder
-    .ignoreIfMissing()
-    .load();
-
-    // Konfigurasi dari .env
-    private static final String ONTO_NS = dotenv.get("ONTO_NS", "http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#");
-
-    private static final String OWL_FILE_PATH = dotenv.get("OWL_FILE_PATH", "ontology/thesis-1.owl");
-
-    
-    private static final String FUSEKI_UPDATE_URL = dotenv.get("FUSEKI_UPDATE_URL", "http://localhost:3030/project-1/update");
-    private static final int SERVER_PORT = Integer.parseInt(dotenv.get("REASONER_PORT", "4567"));
-
     public static void main(String[] args) {
-        port(SERVER_PORT);
+        // Load konfigurasi dari .env
+        Dotenv dotenv = Dotenv.load();
+        int portNumber = Integer.parseInt(dotenv.get("PORT", "4567"));
+        String owlFilePath = dotenv.get("ONTOLOGY_PATH", "ontology/thesis-1.owl");
+        String ontologyNS = dotenv.get("ONTOLOGY_NS", "http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#");
+        String fusekiUpdateUrl = dotenv.get("FUSEKI_UPDATE_URL", "http://localhost:3030/project-1/update");
 
-        // Endpoint reasoning areaCook
+        port(portNumber);
+
+        // Reasoning untuk areaCook
         get("/reasoning/cook", (req, res) -> {
             res.type("application/json");
-            try {
-                return runReasoning("act_AC_Buzzer", "act_AC_Exhaust", "fnc_cookAct", "fnc_timing");
-            } catch (Exception e) {
-                res.status(500);
-                return "{\"error\": \"Reasoning cook gagal: " + e.getMessage() + "\"}";
-            }
+            return runReasoning(ontologyNS, owlFilePath, fusekiUpdateUrl,
+                    "act_AC_Buzzer", "act_AC_Exhaust", "fnc_cookAct", "fnc_timing");
         });
 
-        // Endpoint reasoning areaWash
+        // Reasoning untuk areaWash
         get("/reasoning/wash", (req, res) -> {
             res.type("application/json");
-            try {
-                return runReasoning("act_AS_Valve");
-            } catch (Exception e) {
-                res.status(500);
-                return "{\"error\": \"Reasoning wash gagal: " + e.getMessage() + "\"}";
-            }
+            return runReasoning(ontologyNS, owlFilePath, fusekiUpdateUrl, "act_AS_Valve");
         });
 
-        // Endpoint reasoning areaInout
+        // Reasoning untuk areaInout
         get("/reasoning/inout", (req, res) -> {
             res.type("application/json");
-            try {
-                return runReasoning("act_AE_Lamp");
-            } catch (Exception e) {
-                res.status(500);
-                return "{\"error\": \"Reasoning inout gagal: " + e.getMessage() + "\"}";
-            }
+            return runReasoning(ontologyNS, owlFilePath, fusekiUpdateUrl, "act_AE_Lamp");
         });
 
-        System.out.println("✅ Reasoner service running at http://localhost:" + SERVER_PORT);
+        System.out.println("✅ Reasoner service running at http://localhost:" + portNumber);
     }
 
     /**
      * Jalankan reasoning untuk beberapa individual
      */
-    private static String runReasoning(String... individuals) throws Exception {
+    private static String runReasoning(String ontologyNS, String owlFilePath, String fusekiUpdateUrl,
+                                       String... individuals) throws Exception {
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new File(OWL_FILE_PATH));
+        OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new File(owlFilePath));
         OWLDataFactory df = manager.getOWLDataFactory();
 
         OpenlletReasoner reasoner = OpenlletReasonerFactory.getInstance().createReasoner(ontology);
         reasoner.precomputeInferences();
 
-        OWLObjectProperty actionProp = df.getOWLObjectProperty(IRI.create(ONTO_NS + "M_hasActionStatus"));
-        OWLObjectProperty activityProp = df.getOWLObjectProperty(IRI.create(ONTO_NS + "M_ActivityStatus"));
-        OWLObjectProperty timerProp = df.getOWLObjectProperty(IRI.create(ONTO_NS + "ACop_hasTimerStatus"));
+        OWLObjectProperty actionProp = df.getOWLObjectProperty(IRI.create(ontologyNS + "M_hasActionStatus"));
+        OWLObjectProperty activityProp = df.getOWLObjectProperty(IRI.create(ontologyNS + "M_ActivityStatus"));
+        OWLObjectProperty timerProp = df.getOWLObjectProperty(IRI.create(ontologyNS + "ACop_hasTimerStatus"));
 
         JsonObject result = new JsonObject();
 
         for (String indName : individuals) {
-            OWLNamedIndividual ind = df.getOWLNamedIndividual(IRI.create(ONTO_NS + indName));
+            OWLNamedIndividual ind = df.getOWLNamedIndividual(IRI.create(ontologyNS + indName));
 
             // Cek action
             getFirstValue(reasoner, ind, actionProp).ifPresent(val -> {
                 result.addProperty(indName + "_action", val);
-                updateFuseki(indName, "M_hasActionStatus", val);
+                updateFuseki(fusekiUpdateUrl, ontologyNS, indName, "M_hasActionStatus", val);
             });
 
             // Cek activity
             getFirstValue(reasoner, ind, activityProp).ifPresent(val -> {
                 result.addProperty(indName + "_activity", val);
-                updateFuseki(indName, "M_ActivityStatus", val);
+                updateFuseki(fusekiUpdateUrl, ontologyNS, indName, "M_ActivityStatus", val);
             });
 
             // Cek timer
             getFirstValue(reasoner, ind, timerProp).ifPresent(val -> {
                 result.addProperty(indName + "_timer", val);
-                updateFuseki(indName, "ACop_hasTimerStatus", val);
+                updateFuseki(fusekiUpdateUrl, ontologyNS, indName, "ACop_hasTimerStatus", val);
             });
         }
 
@@ -118,7 +98,8 @@ public class SmartHomeReasoner {
     /**
      * Ambil nilai pertama dari object property
      */
-    private static Optional<String> getFirstValue(OpenlletReasoner reasoner, OWLNamedIndividual ind, OWLObjectProperty prop) {
+    private static Optional<String> getFirstValue(OpenlletReasoner reasoner, OWLNamedIndividual ind,
+                                                  OWLObjectProperty prop) {
         return reasoner.getObjectPropertyValues(ind, prop)
                 .entities()
                 .findFirst()
@@ -128,16 +109,17 @@ public class SmartHomeReasoner {
     /**
      * Update hasil reasoning ke Fuseki
      */
-    private static void updateFuseki(String subject, String predicate, String inferredValue) {
+    private static void updateFuseki(String fusekiUpdateUrl, String ontologyNS, String subject,
+                                     String predicate, String inferredValue) {
         try {
             String update = String.format("""
                 PREFIX : <%s>
                 DELETE { :%s :%s ?s }
                 INSERT { :%s :%s :%s }
                 WHERE { OPTIONAL { :%s :%s ?s } }
-            """, ONTO_NS, subject, predicate, subject, predicate, inferredValue, subject, predicate);
+            """, ontologyNS, subject, predicate, subject, predicate, inferredValue, subject, predicate);
 
-            HttpURLConnection conn = (HttpURLConnection) new URL(FUSEKI_UPDATE_URL).openConnection();
+            HttpURLConnection conn = (HttpURLConnection) new URL(fusekiUpdateUrl).openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             conn.setDoOutput(true);
