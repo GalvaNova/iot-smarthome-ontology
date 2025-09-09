@@ -8,7 +8,7 @@ require("dotenv").config();
 
 // === Konfigurasi dari .env ===
 const PORT = process.env.BACKEND_PORT || 5000;
-const COOK_NOTIFIER = process.env.COOK_NOTIFIER || "cook-notifier.js";
+// const COOK_NOTIFIER = process.env.COOK_NOTIFIER || "cook-notifier.js";
 
 const app = express();
 
@@ -32,15 +32,15 @@ app.use("/api", emailManager);
 app.use("/", express.static(path.join(__dirname, "../frontend")));
 
 // Jalankan cook-notifier.js secara otomatis (opsional)
-if (COOK_NOTIFIER) {
-  exec(`node ${COOK_NOTIFIER}`, (err, stdout, stderr) => {
-    if (err) {
-      console.error("❌ Gagal memulai cook-notifier:", stderr);
-    } else {
-      console.log(`🚀 ${COOK_NOTIFIER} dijalankan.`);
-    }
-  });
-}
+// if (COOK_NOTIFIER) {
+//   exec(`node ${COOK_NOTIFIER}`, (err, stdout, stderr) => {
+//     if (err) {
+//       console.error("❌ Gagal memulai cook-notifier:", stderr);
+//     } else {
+//       console.log(`🚀 ${COOK_NOTIFIER} dijalankan.`);
+//     }
+//   });
+// }
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Backend aktif di http://0.0.0.0:${PORT}`);

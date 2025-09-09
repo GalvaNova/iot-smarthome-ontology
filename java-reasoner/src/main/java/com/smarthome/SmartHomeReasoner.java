@@ -19,11 +19,18 @@ import java.util.Optional;
 
 public class SmartHomeReasoner {
 
-    private static final Dotenv dotenv = Dotenv.load();
+    // private static final Dotenv dotenv = Dotenv.load();
+    private static final Dotenv dotenv = Dotenv.configure()
+    .directory("../")   // cari .env di parent folder
+    .ignoreIfMissing()
+    .load();
 
     // Konfigurasi dari .env
     private static final String ONTO_NS = dotenv.get("ONTO_NS", "http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#");
+
     private static final String OWL_FILE_PATH = dotenv.get("OWL_FILE_PATH", "ontology/thesis-1.owl");
+
+    
     private static final String FUSEKI_UPDATE_URL = dotenv.get("FUSEKI_UPDATE_URL", "http://localhost:3030/project-1/update");
     private static final int SERVER_PORT = Integer.parseInt(dotenv.get("REASONER_PORT", "4567"));
 
