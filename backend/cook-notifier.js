@@ -6,7 +6,7 @@ require("dotenv").config();
 // === Konfigurasi dari .env ===
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const FUSEKI_QUERY_URL =
-  process.env.FUSEKI_QUERY_URL || "http://localhost:3030/project-1/query";
+  process.env.FUSEKI_QUERY_URL || "http://192.168.43.238:3030/project-1/query";
 const POLL_INTERVAL = process.env.POLL_INTERVAL || 5000; // default: 5 detik
 const GAS_THRESHOLD = process.env.GAS_THRESHOLD || 700; // default: 700 PPM
 
