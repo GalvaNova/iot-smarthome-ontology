@@ -1,1 +1,3 @@
 # iot-smarthome-ontology
+
+(Ongoing)
