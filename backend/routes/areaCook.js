@@ -1,22 +1,35 @@
 // routes/areaCook.js
+require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
-require("dotenv").config();
-
 const router = express.Router();
 
-// === Konfigurasi dari .env ===
+// === Ambil konfigurasi dari .env ===
+const FUSEKI_HOST = process.env.FUSEKI_HOST || "localhost";
+const FUSEKI_PORT = process.env.FUSEKI_PORT || "3030";
+const FUSEKI_DATASET = process.env.FUSEKI_DATASET || "project-1";
+
 const FUSEKI_UPDATE =
   process.env.FUSEKI_UPDATE_URL ||
-  "http://192.168.43.238:3030/project-1/update";
-const FUSEKI_QUERY =
-  process.env.FUSEKI_QUERY_URL || "http://192.168.43.238:3030/project-1/query";
-const REASONER_URL =
-  process.env.REASONER_URL || "http://192.168.43.238:4567/reasoning/cook";
+  `http://${FUSEKI_HOST}:${FUSEKI_PORT}/${FUSEKI_DATASET}/update`;
 
-let lastUpdateCook = 0;
+const FUSEKI_QUERY =
+  process.env.FUSEKI_QUERY_URL ||
+  `http://${FUSEKI_HOST}:${FUSEKI_PORT}/${FUSEKI_DATASET}/query`;
+
+const REASONER_HOST = process.env.REASONER_HOST || "localhost";
+const REASONER_PORT = process.env.REASONER_PORT || "4567";
+const REASONER_URL = `http://${REASONER_HOST}:${REASONER_PORT}/reasoning/cook`;
+
+// Debug log
+console.log("🔗 Config areaCook.js:");
+console.log("   FUSEKI_UPDATE:", FUSEKI_UPDATE);
+console.log("   FUSEKI_QUERY :", FUSEKI_QUERY);
+console.log("   REASONER_URL :", REASONER_URL);
 
 // ==================== POST Sensor Data ====================
+let lastUpdateCook = 0;
+
 router.post("/sensorCook", async (req, res) => {
   const { temp, flame, jarak, ppm } = req.body;
   if ([temp, flame, jarak, ppm].some((v) => v === undefined)) {
@@ -57,7 +70,7 @@ router.post("/sensorCook", async (req, res) => {
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    // Trigger reasoning
+    // Trigger reasoning Java Reasoner
     await axios.get(REASONER_URL);
 
     res.json({ message: "Sensor data stored & reasoning triggered" });
