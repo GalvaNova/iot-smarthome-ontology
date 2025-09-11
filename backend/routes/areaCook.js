@@ -7,7 +7,7 @@ const router = express.Router();
 // === Ambil konfigurasi dari .env ===
 const FUSEKI_HOST = process.env.FUSEKI_HOST || "localhost";
 const FUSEKI_PORT = process.env.FUSEKI_PORT || "3030";
-const FUSEKI_DATASET = process.env.FUSEKI_DATASET || "project-1";
+const FUSEKI_DATASET = process.env.FUSEKI_DATASET || "jarvis";
 
 const FUSEKI_UPDATE =
   process.env.FUSEKI_UPDATE_URL ||
@@ -31,7 +31,7 @@ console.log("   REASONER_URL :", REASONER_URL);
 let lastUpdateCook = 0;
 
 router.post("/sensorCook", async (req, res) => {
-  const { temp, flame, jarak, ppm } = req.body;
+  let { temp, flame, jarak, ppm } = req.body;
   if ([temp, flame, jarak, ppm].some((v) => v === undefined)) {
     return res.status(400).json({ error: "Missing sensor data" });
   }
@@ -49,10 +49,10 @@ router.post("/sensorCook", async (req, res) => {
       :read_AC_Ppm :ACdp_hasPPMvalue ?p .
     }
     INSERT {
-      :read_AC_Temp :ACdp_hasTEMPvalue "${temp}"^^xsd:float .
-      :read_AC_Flame :ACdp_hasFIREvalue "${flame}"^^xsd:float .
-      :read_AC_Dist :ACdp_hasDISTvalue "${jarak}"^^xsd:float .
-      :read_AC_Ppm :ACdp_hasPPMvalue "${ppm}"^^xsd:float .
+      :read_AC_Temp :ACdp_hasTEMPvalue "${temp}"^^xsd:decimal .
+      :read_AC_Flame :ACdp_hasFIREvalue "${flame}"^^xsd:decimal .
+      :read_AC_Dist :ACdp_hasDISTvalue "${jarak}"^^xsd:decimal .
+      :read_AC_Ppm :ACdp_hasPPMvalue "${ppm}"^^xsd:decimal .
     }
     WHERE {
       OPTIONAL { :read_AC_Temp :ACdp_hasTEMPvalue ?t }
@@ -85,9 +85,9 @@ router.get("/statusCook", async (req, res) => {
   const query = `
     PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
     SELECT ?fan ?buzzer ?act ?timer WHERE {
-      OPTIONAL { :act_AC_Exhaust :M_ActionStatus ?fan }
-      OPTIONAL { :act_AC_Buzzer :M_ActionStatus ?buzzer }
-      OPTIONAL { :fnc_cookAct :M_ActivityStatus ?act }
+      OPTIONAL { :act_AC_Exhaust :M_hasActionStatus ?fan }
+      OPTIONAL { :act_AC_Buzzer  :M_hasActionStatus ?buzzer }
+      OPTIONAL { :fnc_cookAct :M_hasActivityStatus ?act }
       OPTIONAL { :fnc_timing :ACop_hasTimerStatus ?timer }
     }
     LIMIT 1
@@ -99,24 +99,56 @@ router.get("/statusCook", async (req, res) => {
       headers: { Accept: "application/sparql-results+json" },
     });
 
+    console.log("🔎 /statusCook Fuseki:", JSON.stringify(r.data, null, 2));
+
     const b = r.data.results.bindings[0] || {};
 
-    const fan = b.fan?.value.split("#")[1] ?? "UNKNOWN";
-    const buzzer = b.buzzer?.value.split("#")[1] ?? "UNKNOWN";
-    const activity = b.act?.value.split("#")[1] ?? "UNKNOWN";
-    const timer = b.timer?.value.split("#")[1] ?? "UNKNOWN";
+    const fan = b.fan?.value.endsWith("st_actON") ? "ON" : "OFF";
+    const buzzer = b.buzzer?.value.endsWith("st_actON") ? "ON" : "OFF";
+    const activity = b.act?.value?.split("#").pop() ?? "UNKNOWN";
+    const timer = b.timer?.value?.split("#").pop() ?? "UNKNOWN";
 
-    res.json({
-      FAN: fan,
-      BUZZER: buzzer,
-      ACTIVITY: activity,
-      TIMER: timer,
-    });
+    res.json({ FAN: fan, BUZZER: buzzer, ACTIVITY: activity, TIMER: timer });
   } catch (err) {
     console.error("❌ statusCook error:", err.message);
     res.status(500).json({ error: true });
   }
 });
+
+// ==================== Helper: getCookStatus ====================
+async function getCookStatus() {
+  const query = `
+    PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
+    SELECT ?fanStatus ?buzzStatus WHERE {
+      OPTIONAL { :act_AC_Exhaust :M_hasActionStatus ?fanStatus. }
+      OPTIONAL { :act_AC_Buzzer :M_hasActionStatus ?buzzStatus. }
+    }
+  `;
+
+  try {
+    const res = await axios.post(
+      FUSEKI_QUERY,
+      `query=${encodeURIComponent(query)}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+
+    console.log("🔎 Fuseki response:", JSON.stringify(res.data, null, 2));
+
+    let fan = "OFF";
+    let buzzer = "OFF";
+
+    const bindings = res.data.results.bindings[0];
+    if (bindings?.fanStatus?.value.endsWith("st_actON")) fan = "ON";
+    if (bindings?.buzzStatus?.value.endsWith("st_actON")) buzzer = "ON";
+
+    return { fan, buzzer };
+  } catch (err) {
+    console.error("❌ statusCook error:", err.message);
+    return { fan: "OFF", buzzer: "OFF" };
+  }
+}
 
 // ==================== GET Latest Sensor Update ====================
 router.get("/latest", (req, res) => {

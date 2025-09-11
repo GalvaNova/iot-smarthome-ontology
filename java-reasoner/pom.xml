@@ -11,6 +11,7 @@
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
@@ -40,21 +41,21 @@
       <version>2.9.3</version>
     </dependency>
 
-    <!-- Gson -->
+    <!-- Gson (JSON handling) -->
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.10.1</version>
     </dependency>
 
-    <!-- Dotenv (baca .env) -->
+    <!-- Dotenv for Java -->
     <dependency>
       <groupId>io.github.cdimascio</groupId>
       <artifactId>dotenv-java</artifactId>
       <version>3.0.0</version>
     </dependency>
 
-    <!-- Logging sederhana -->
+    <!-- Logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
@@ -74,7 +75,7 @@
         </configuration>
       </plugin>
 
-      <!-- Shade plugin: bikin fat-jar siap java -jar -->
+      <!-- Shade plugin untuk buat jar runnable -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -82,11 +83,8 @@
         <executions>
           <execution>
             <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
+            <goals><goal>shade</goal></goals>
             <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.smarthome.SmartHomeReasoner</mainClass>
