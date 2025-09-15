@@ -885,8 +885,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-11</rdfs:comment>
-        <rdfs:label>AC_TimerOFF-R2</rdfs:label>
+        <rdfs:comment>Cook = NO -&gt; Timer OFF</rdfs:comment>
+        <rdfs:label>Rule 11</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -932,8 +932,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-7</rdfs:comment>
-        <rdfs:label>AC_ExhaustON-R3</rdfs:label>
+        <rdfs:comment>Suhu &gt; 35 &amp; Gas &gt; 700 -&gt; Exhaust ON</rdfs:comment>
+        <rdfs:label>Rule 7</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1040,8 +1040,116 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>cooking-zero person</rdfs:comment>
-        <rdfs:label>R1-AE-AC</rdfs:label>
+        <rdfs:comment>Suhu &gt; 35 &amp; Gas &gt; 700 -&gt; Exhaust ON</rdfs:comment>
+        <rdfs:label>Rule 8a</rdfs:label>
+        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
+        <swrl:body>
+            <rdf:Description>
+                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                <rdf:first>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom"/>
+                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ACdp_hasTEMPvalue"/>
+                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/rtemp"/>
+                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/temp"/>
+                    </rdf:Description>
+                </rdf:first>
+                <rdf:rest>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                        <rdf:first>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#BuiltinAtom"/>
+                                <swrl:builtin rdf:resource="http://www.w3.org/2003/11/swrlb#greaterThan"/>
+                                <swrl:arguments>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                        <rdf:first rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/temp"/>
+                                        <rdf:rest>
+                                            <rdf:Description>
+                                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                                <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">35</rdf:first>
+                                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                                            </rdf:Description>
+                                        </rdf:rest>
+                                    </rdf:Description>
+                                </swrl:arguments>
+                            </rdf:Description>
+                        </rdf:first>
+                        <rdf:rest>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                                <rdf:first>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom"/>
+                                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ACdp_hasPPMvalue"/>
+                                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/rgas"/>
+                                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/lpg"/>
+                                    </rdf:Description>
+                                </rdf:first>
+                                <rdf:rest>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                                        <rdf:first>
+                                            <rdf:Description>
+                                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#BuiltinAtom"/>
+                                                <swrl:builtin rdf:resource="http://www.w3.org/2003/11/swrlb#greaterThan"/>
+                                                <swrl:arguments>
+                                                    <rdf:Description>
+                                                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                                        <rdf:first rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/lpg"/>
+                                                        <rdf:rest>
+                                                            <rdf:Description>
+                                                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                                                <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">700</rdf:first>
+                                                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                                                            </rdf:Description>
+                                                        </rdf:rest>
+                                                    </rdf:Description>
+                                                </swrl:arguments>
+                                            </rdf:Description>
+                                        </rdf:first>
+                                        <rdf:rest>
+                                            <rdf:Description>
+                                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                                                <rdf:first>
+                                                    <rdf:Description>
+                                                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
+                                                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#M_hasAction"/>
+                                                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/exhaust"/>
+                                                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#act_AC_Exhaust"/>
+                                                    </rdf:Description>
+                                                </rdf:first>
+                                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                                            </rdf:Description>
+                                        </rdf:rest>
+                                    </rdf:Description>
+                                </rdf:rest>
+                            </rdf:Description>
+                        </rdf:rest>
+                    </rdf:Description>
+                </rdf:rest>
+            </rdf:Description>
+        </swrl:body>
+        <swrl:head>
+            <rdf:Description>
+                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                <rdf:first>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
+                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#M_hasActionStatus"/>
+                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#act_AC_Exhaust"/>
+                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#st_actON"/>
+                    </rdf:Description>
+                </rdf:first>
+                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+            </rdf:Description>
+        </swrl:head>
+    </rdf:Description>
+    <rdf:Description>
+        <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
+        <rdfs:comment>Cook YES &amp; Count = 0 -&gt; Lamp ON</rdfs:comment>
+        <rdfs:label>Rule 15</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1124,79 +1232,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-13</rdfs:comment>
-        <rdfs:label>AE_LampON-R1</rdfs:label>
-        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
-        <swrl:body>
-            <rdf:Description>
-                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                <rdf:first>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom"/>
-                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AEdp_hasCOUNTvalue"/>
-                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/pers"/>
-                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/counting"/>
-                    </rdf:Description>
-                </rdf:first>
-                <rdf:rest>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                        <rdf:first>
-                            <rdf:Description>
-                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#BuiltinAtom"/>
-                                <swrl:builtin rdf:resource="http://www.w3.org/2003/11/swrlb#greaterThan"/>
-                                <swrl:arguments>
-                                    <rdf:Description>
-                                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
-                                        <rdf:first rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/counting"/>
-                                        <rdf:rest>
-                                            <rdf:Description>
-                                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
-                                                <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</rdf:first>
-                                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
-                                            </rdf:Description>
-                                        </rdf:rest>
-                                    </rdf:Description>
-                                </swrl:arguments>
-                            </rdf:Description>
-                        </rdf:first>
-                        <rdf:rest>
-                            <rdf:Description>
-                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                                <rdf:first>
-                                    <rdf:Description>
-                                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
-                                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#M_hasAction"/>
-                                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/inout"/>
-                                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#act_AE_Lamp"/>
-                                    </rdf:Description>
-                                </rdf:first>
-                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
-                            </rdf:Description>
-                        </rdf:rest>
-                    </rdf:Description>
-                </rdf:rest>
-            </rdf:Description>
-        </swrl:body>
-        <swrl:head>
-            <rdf:Description>
-                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
-                <rdf:first>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
-                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#M_hasActionStatus"/>
-                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#act_AE_Lamp"/>
-                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#st_actON"/>
-                    </rdf:Description>
-                </rdf:first>
-                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
-            </rdf:Description>
-        </swrl:head>
-    </rdf:Description>
-    <rdf:Description>
-        <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-5</rdfs:comment>
-        <rdfs:label>AC_ExhaustON-R1</rdfs:label>
+        <rdfs:comment>Api = 1 &amp; Gas &gt; 700 -&gt; Exhaust ON</rdfs:comment>
+        <rdfs:label>Rule 5</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1303,8 +1340,79 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-14</rdfs:comment>
-        <rdfs:label>AS_ValveON-R1</rdfs:label>
+        <rdfs:comment>Count &gt; 0 -&gt; Lamp ON</rdfs:comment>
+        <rdfs:label>Rule 13</rdfs:label>
+        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
+        <swrl:body>
+            <rdf:Description>
+                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                <rdf:first>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom"/>
+                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AEdp_hasCOUNTvalue"/>
+                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/pers"/>
+                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/counting"/>
+                    </rdf:Description>
+                </rdf:first>
+                <rdf:rest>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                        <rdf:first>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#BuiltinAtom"/>
+                                <swrl:builtin rdf:resource="http://www.w3.org/2003/11/swrlb#greaterThan"/>
+                                <swrl:arguments>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                        <rdf:first rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/counting"/>
+                                        <rdf:rest>
+                                            <rdf:Description>
+                                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                                <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</rdf:first>
+                                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                                            </rdf:Description>
+                                        </rdf:rest>
+                                    </rdf:Description>
+                                </swrl:arguments>
+                            </rdf:Description>
+                        </rdf:first>
+                        <rdf:rest>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                                <rdf:first>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
+                                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#M_hasAction"/>
+                                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1/inout"/>
+                                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#act_AE_Lamp"/>
+                                    </rdf:Description>
+                                </rdf:first>
+                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                            </rdf:Description>
+                        </rdf:rest>
+                    </rdf:Description>
+                </rdf:rest>
+            </rdf:Description>
+        </swrl:body>
+        <swrl:head>
+            <rdf:Description>
+                <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#AtomList"/>
+                <rdf:first>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"/>
+                        <swrl:propertyPredicate rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#M_hasActionStatus"/>
+                        <swrl:argument1 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#act_AE_Lamp"/>
+                        <swrl:argument2 rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#st_actON"/>
+                    </rdf:Description>
+                </rdf:first>
+                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+            </rdf:Description>
+        </swrl:head>
+    </rdf:Description>
+    <rdf:Description>
+        <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
+        <rdfs:comment>Wash (Objek &lt; 20 &amp; Orang &lt; 20) -&gt; Valve ON &amp; Wash YES</rdfs:comment>
+        <rdfs:label>Rule 14</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1437,8 +1545,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-3</rdfs:comment>
-        <rdfs:label>AC_Cooking-R1</rdfs:label>
+        <rdfs:comment>Suhu &gt; 35, Api = 0, Jarak &lt; 10 -&gt; Cooking YES</rdfs:comment>
+        <rdfs:label>Rule 3</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1582,8 +1690,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-4</rdfs:comment>
-        <rdfs:label>AC_Cooking-R2</rdfs:label>
+        <rdfs:comment>Suhu ≤ 35, Api = 0, Jarak ≥ 10 -&gt; Cooking YES</rdfs:comment>
+        <rdfs:label>Rule 4</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1727,8 +1835,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-10</rdfs:comment>
-        <rdfs:label>AC_NotCooking-R1</rdfs:label>
+        <rdfs:comment>Suhu &gt; 35, Api = 1, Jarak ≥ 10 -&gt; Cooking NO</rdfs:comment>
+        <rdfs:label>Rule 10</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1872,8 +1980,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-2</rdfs:comment>
-        <rdfs:label>AC_BuzzerON-R2</rdfs:label>
+        <rdfs:comment>Api = 0 &amp; Jarak ≥ 10 -&gt; Buzzer ON</rdfs:comment>
+        <rdfs:label>Rule 2</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -1980,8 +2088,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-1</rdfs:comment>
-        <rdfs:label>AC_BuzzerON-R1</rdfs:label>
+        <rdfs:comment>Gas &gt; 700 → Buzzer ON</rdfs:comment>
+        <rdfs:label>Rule 1</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -2051,8 +2159,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-6</rdfs:comment>
-        <rdfs:label>AC_ExhaustON-R2</rdfs:label>
+        <rdfs:comment>Api = 1 &amp; Jarak &lt; 10 -&gt; Exhaust ON</rdfs:comment>
+        <rdfs:label>Rule 6</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -2159,8 +2267,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-8</rdfs:comment>
-        <rdfs:label>AC_ExhaustON-R4</rdfs:label>
+        <rdfs:comment>Suhu &gt; 35 &amp; Jarak &lt; 10 -&gt; Exhaust ON</rdfs:comment>
+        <rdfs:label>Rule 8b</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -2267,8 +2375,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-12</rdfs:comment>
-        <rdfs:label>AC_TimerON-R1</rdfs:label>
+        <rdfs:comment>Cook = YES -&gt; Timer ON</rdfs:comment>
+        <rdfs:label>Rule 12</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
@@ -2314,8 +2422,8 @@
     </rdf:Description>
     <rdf:Description>
         <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
-        <rdfs:comment>rule-9</rdfs:comment>
-        <rdfs:label>AC_ExhaustON-R5</rdfs:label>
+        <rdfs:comment>Suhu &gt; 35 &amp; Api = 0 -&gt; Exhaust ON</rdfs:comment>
+        <rdfs:label>Rule 9</rdfs:label>
         <rdf:type rdf:resource="http://www.w3.org/2003/11/swrl#Imp"/>
         <swrl:body>
             <rdf:Description>
