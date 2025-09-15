@@ -1,0 +1,164 @@
+Rule 1 – Gas > 700 → Buzzer ON
+
+ACdp_hasPPMvalue(?rgas, ?lpg) ^ 
+swrlb:greaterThan(?lpg, 700) ^ 
+M_hasAction(?buzz, act_AC_Buzzer) 
+→ M_hasActionStatus(act_AC_Buzzer, st_actON)
+
+
+Rule 2 – Api = 0 & Jarak ≥ 10 → Buzzer ON
+
+ACdp_hasFIREvalue(?rflame, ?flame) ^ 
+swrlb:equal(?flame, 0) ^ 
+ACdp_hasDISTvalue(?rsuls, ?dist) ^ 
+swrlb:greaterThanOrEqual(?dist, 10) ^ 
+M_hasAction(?buzz, act_AC_Buzzer) 
+→ M_hasActionStatus(act_AC_Buzzer, st_actON)
+
+
+Rule 3 – Suhu > 35, Api = 0, Jarak < 10 → Cooking YES
+
+ACdp_hasTEMPvalue(?rtemp, ?temp) ^ 
+swrlb:greaterThan(?temp, 35) ^ 
+ACdp_hasFIREvalue(?rflame, ?flame) ^ 
+swrlb:equal(?flame, 0) ^ 
+ACdp_hasDISTvalue(?rsuls, ?dist) ^ 
+swrlb:lessThan(?dist, 10) ^ 
+M_hasActivity(?a, fnc_cookAct) 
+→ M_hasActivityStatus(fnc_cookAct, st_cookYES)
+
+
+
+Rule 4 – Suhu ≤ 35, Api = 0, Jarak ≥ 10 → Cooking YES
+
+ACdp_hasTEMPvalue(?rtemp, ?temp) ^ 
+swrlb:lessThanOrEqual(?temp, 35) ^ 
+ACdp_hasFIREvalue(?rflame, ?flame) ^ 
+swrlb:equal(?flame, 0) ^ 
+ACdp_hasDISTvalue(?rsuls, ?dist) ^ 
+swrlb:greaterThanOrEqual(?dist, 10) ^ 
+M_hasActivity(?a, fnc_cookAct) 
+→ M_hasActivityStatus(fnc_cookAct, st_cookYES)
+
+
+Rule 5 – Api = 1 & Gas > 700 → Exhaust ON
+
+ACdp_hasFIREvalue(?rflame, ?flame) ^ 
+swrlb:equal(?flame, 1) ^ 
+ACdp_hasPPMvalue(?rgas, ?lpg) ^ 
+swrlb:greaterThan(?lpg, 700) ^ 
+M_hasAction(?a, act_AC_Exhaust) 
+→ M_hasActionStatus(act_AC_Exhaust, st_actON)
+
+
+Rule 6 – Api = 1 & Jarak < 10 → Exhaust ON
+
+ACdp_hasFIREvalue(?rflame, ?flame) ^ 
+swrlb:equal(?flame, 1) ^ 
+ACdp_hasDISTvalue(?rsuls, ?dist) ^ 
+swrlb:lessThan(?dist, 10) ^ 
+M_hasAction(?exhaust, act_AC_Exhaust) 
+→ M_hasActionStatus(act_AC_Exhaust, st_actON)
+
+
+Rule 7 – Suhu > 35 & Gas > 700 → Exhaust ON
+
+ACdp_hasTEMPvalue(?rtemp, ?temp) ^ 
+swrlb:greaterThan(?temp, 35) ^ 
+ACdp_hasPPMvalue(?rgas, ?lpg) ^ 
+swrlb:greaterThan(?lpg, 700) ^ 
+M_hasAction(?exhaust, act_AC_Exhaust) 
+→ M_hasActionStatus(act_AC_Exhaust, st_actON)
+
+
+Rule 8a – Suhu > 35 & Gas > 700 → Exhaust ON
+
+ACdp_hasTEMPvalue(?rtemp, ?temp) ^ 
+swrlb:greaterThan(?temp, 35) ^ 
+ACdp_hasPPMvalue(?rgas, ?lpg) ^ 
+swrlb:greaterThan(?lpg, 700) ^ 
+M_hasAction(?exhaust, act_AC_Exhaust) 
+→ M_hasActionStatus(act_AC_Exhaust, st_actON)
+
+
+Rule 8b – Suhu > 35 & Jarak < 10 → Exhaust ON
+
+ACdp_hasTEMPvalue(?rtemp, ?temp) ^ 
+swrlb:greaterThan(?temp, 35) ^ 
+ACdp_hasDISTvalue(?rsuls, ?dist) ^ 
+swrlb:lessThan(?dist, 10) ^ 
+M_hasAction(?exhaust, act_AC_Exhaust) 
+→ M_hasActionStatus(act_AC_Exhaust, st_actON)
+
+Rule 9 – Suhu > 35 & Api = 0 → Exhaust ON
+
+ACdp_hasTEMPvalue(?rtemp, ?temp) ^ 
+swrlb:greaterThan(?temp, 35) ^ 
+ACdp_hasFIREvalue(?rflame, ?flame) ^ 
+swrlb:equal(?flame, 0) ^ 
+M_hasAction(?exhaust, act_AC_Exhaust) 
+→ M_hasActionStatus(act_AC_Exhaust, st_actON)
+
+
+Rule 10 – Suhu > 35, Api = 1, Jarak ≥ 10 → Cooking NO
+
+ACdp_hasTEMPvalue(?rtemp, ?temp) ^ 
+swrlb:greaterThan(?temp, 35) ^ 
+ACdp_hasFIREvalue(?rflame, ?flame) ^ 
+swrlb:equal(?flame, 1) ^ 
+ACdp_hasDISTvalue(?rsuls, ?dist) ^ 
+swrlb:greaterThanOrEqual(?dist, 10) ^ 
+M_hasActivity(?a, fnc_cookAct) 
+→ M_hasActivityStatus(fnc_cookAct, st_cookNO)
+
+
+Rule 11 – Cook = NO → Timer OFF
+
+M_hasActivityStatus(fnc_cookAct, st_cookNO) ^ 
+ACop_hasTimer(?time, fnc_timing) 
+→ ACop_hasTimer(fnc_timing, st_timerOFF)
+
+Rule 12 – Cook = YES → Timer ON
+
+M_hasActivityStatus(fnc_cookAct, st_cookYES) ^ 
+ACop_hasTimer(?time, fnc_timing) 
+→ ACop_hasTimer(fnc_timing, st_timerON)
+
+Rule 13 – Count > 0 → Lamp ON
+
+AEdp_hasCOUNTvalue(?pers, ?counting) ^ 
+swrlb:greaterThan(?counting, 0) ^ 
+M_hasAction(?inout, act_AE_Lamp) 
+→ M_hasActionStatus(act_AE_Lamp, st_actON)
+
+
+Rule 14 – Wash (Objek < 20 & Orang < 20) → Valve ON & Wash YES
+
+ASdp_hasDISTOBJvalue(?robj, ?valobj) ^ 
+ASdp_hasDISTPERSvalue(?rpers, ?valpers) ^ 
+swrlb:lessThan(?valobj, 20) ^ 
+swrlb:lessThan(?valpers, 20) ^ 
+M_hasActivity(?actv, fnc_washAct) ^ 
+M_hasAction(?valve, act_AS_Valve) 
+→ M_hasActionStatus(act_AS_Valve, st_actON) ^ 
+M_hasActivityStatus(fnc_washAct, st_washYES)
+
+Rule 15 – Cook YES & Count = 0 → Lamp ON
+
+M_hasActivityStatus(fnc_cookAct, st_cookYES) ^ 
+AEdp_hasCOUNTvalue(?pers, ?counting) ^ 
+swrlb:equal(?counting, 0) ^ 
+M_hasAction(?inout, act_AE_Lamp) 
+→ M_hasActionStatus(act_AE_Lamp, st_actON)
+
+
+
+
+
+
+
+
+
+
+
+
