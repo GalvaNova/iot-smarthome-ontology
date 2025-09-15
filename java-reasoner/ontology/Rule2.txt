@@ -1,0 +1,70 @@
+1. Gas leak → buzzer + exhaust ON
+
+ACdp_hasPPMvalue(?rgas, ?lpg)^
+swrlb:greaterThan(?lpg, 700)
+
+→ M_hasActionStatus(act_AC_Buzzer, st_actON)^ M_hasActionStatus(act_AC_Exhaust, st_actON)
+
+
+2. Cooking detected (suhu > 35 atau api menyala, jarak < 10)
+
+(ACdp_hasFIREvalue(?rflame, ?flame)^
+swrlb:equal(?flame, 1))
+v (ACdp_hasTEMPvalue(?rtemp, ?temp)^
+swrlb:greaterThan(?temp, 35)^
+ACdp_hasDISTvalue(?rsuls, ?dist)^
+swrlb:lessThan(?dist, 10))
+
+→ M_hasActivityStatus(fnc_cookAct, st_cookYES)
+
+
+3. Not Cooking 
+
+ACdp_hasFIREvalue(?rflame, ?flame)^
+swrlb:equal(?flame, 0)^
+ACdp_hasTEMPvalue(?rtemp, ?temp)^
+swrlb:lessThanOrEqual(?temp, 35)
+
+→ M_hasActivityStatus(fnc_cookAct, st_cookNO)
+
+
+4.Timer Control
+
+M_hasActivityStatus(fnc_cookAct, st_cookYES) → ACop_hasTimerStatus(fnc_timing, st_timerON)
+M_hasActivityStatus(fnc_cookAct, st_cookNO) → ACop_hasTimerStatus(fnc_timing, st_timerOFF)
+
+
+5. Exhaust Control
+
+M_hasActivityStatus(fnc_cookAct, st_cookYES) → M_hasActionStatus(act_AC_Exhaust, st_actON)
+M_hasActivityStatus(fnc_cookAct, st_cookNO) → M_hasActionStatus(act_AC_Exhaust, st_actOFF)
+
+
+6. Lamp Control
+
+AEdp_hasCOUNTvalue(?pers, ?counting)^
+swrlb:greaterThan(?counting, 0) → M_hasActionStatus(act_AE_Lamp, st_actON)
+AEdp_hasCOUNTvalue(?pers, ?counting)^
+swrlb:equal(?counting, 0)^
+M_hasActivityStatus(fnc_cookAct, st_cookNO)^
+M_hasActivityStatus(fnc_washAct, st_washNO)
+→ M_hasActionStatus(act_AE_Lamp, st_actOFF)
+
+
+7. Wash Activity
+
+ASdp_hasDISTOBJvalue(?robj, ?valobj)^
+ASdp_hasDISTPERSvalue(?rpers, ?valpers)^
+swrlb:lessThan(?valobj, 20)^
+swrlb:lessThan(?valpers, 20)
+→ M_hasActivityStatus(fnc_washAct, st_washYES)^
+M_hasActionStatus(act_AS_Valve, st_actON)
+
+ASdp_hasDISTOBJvalue(?robj, ?valobj)^
+ASdp_hasDISTPERSvalue(?rpers, ?valpers)^
+(swrlb:greaterThanOrEqual(?valobj, 20) v swrlb:greaterThanOrEqual(?valpers, 20))
+→ M_hasActivityStatus(fnc_washAct, st_washNO)^
+M_hasActionStatus(act_AS_Valve, st_actOFF)
+
+
+
