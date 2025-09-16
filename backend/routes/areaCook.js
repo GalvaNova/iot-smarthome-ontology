@@ -4,22 +4,23 @@ const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 
-// === Ambil konfigurasi dari .env ===
+// === Konfigurasi dari .env ===
 const FUSEKI_HOST = process.env.FUSEKI_HOST || "localhost";
 const FUSEKI_PORT = process.env.FUSEKI_PORT || "3030";
-const FUSEKI_DATASET = process.env.FUSEKI_DATASET || "jarvis";
+const FUSEKI_DATASET = process.env.FUSEKI_DATASET || "jarvis3";
 
-const FUSEKI_UPDATE =
-  process.env.FUSEKI_UPDATE_URL ||
-  `http://${FUSEKI_HOST}:${FUSEKI_PORT}/${FUSEKI_DATASET}/update`;
-
-const FUSEKI_QUERY =
-  process.env.FUSEKI_QUERY_URL ||
-  `http://${FUSEKI_HOST}:${FUSEKI_PORT}/${FUSEKI_DATASET}/query`;
+const FUSEKI_UPDATE = `http://${FUSEKI_HOST}:${FUSEKI_PORT}/${FUSEKI_DATASET}/update`;
+const FUSEKI_QUERY = `http://${FUSEKI_HOST}:${FUSEKI_PORT}/${FUSEKI_DATASET}/query`;
 
 const REASONER_HOST = process.env.REASONER_HOST || "localhost";
 const REASONER_PORT = process.env.REASONER_PORT || "4567";
 const REASONER_URL = `http://${REASONER_HOST}:${REASONER_PORT}/reasoning/cook`;
+
+// Prefix RDF
+const PREFIXES = `
+  PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+`;
 
 // Debug log
 console.log("🔗 Config areaCook.js:");
@@ -31,17 +32,16 @@ console.log("   REASONER_URL :", REASONER_URL);
 let lastUpdateCook = 0;
 
 router.post("/sensorCook", async (req, res) => {
-  let { temp, flame, jarak, ppm } = req.body;
+  const { temp, flame, jarak, ppm } = req.body;
+
   if ([temp, flame, jarak, ppm].some((v) => v === undefined)) {
-    return res.status(400).json({ error: "Missing sensor data" });
+    return res.status(400).json({ error: "❌ Missing sensor data" });
   }
 
   lastUpdateCook = Date.now();
 
-  // SPARQL update ke Fuseki
   const updateQuery = `
-    PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
-    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    ${PREFIXES}
     DELETE {
       :read_AC_Temp :ACdp_hasTEMPvalue ?t .
       :read_AC_Flame :ACdp_hasFIREvalue ?f .
@@ -63,17 +63,23 @@ router.post("/sensorCook", async (req, res) => {
   `;
 
   try {
-    // Simpan sensor data ke Fuseki
+    // 1️⃣ Simpan data sensor ke Fuseki
     await axios.post(
       FUSEKI_UPDATE,
       `update=${encodeURIComponent(updateQuery)}`,
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    // Trigger reasoning Java Reasoner
-    await axios.get(REASONER_URL);
+    console.log("✅ Sensor data updated to Fuseki");
 
-    res.json({ message: "Sensor data stored & reasoning triggered" });
+    // 2️⃣ Trigger reasoning di Java
+    const reasonRes = await axios.get(REASONER_URL);
+    console.log("🤖 Reasoner result:", reasonRes.data);
+
+    res.json({
+      message: "Sensor stored & reasoning triggered",
+      reasoning: reasonRes.data,
+    });
   } catch (err) {
     console.error("❌ Error in /sensorCook:", err.message);
     res.status(500).json({ error: "Failed to update or trigger reasoning" });
@@ -83,7 +89,7 @@ router.post("/sensorCook", async (req, res) => {
 // ==================== GET Status Actuator ====================
 router.get("/statusCook", async (req, res) => {
   const query = `
-    PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
+    ${PREFIXES}
     SELECT ?fan ?buzzer ?act ?timer WHERE {
       OPTIONAL { :act_AC_Exhaust :M_hasActionStatus ?fan }
       OPTIONAL { :act_AC_Buzzer  :M_hasActionStatus ?buzzer }
@@ -94,12 +100,11 @@ router.get("/statusCook", async (req, res) => {
   `;
 
   try {
-    const r = await axios.get(FUSEKI_QUERY, {
-      params: { query },
-      headers: { Accept: "application/sparql-results+json" },
-    });
-
-    console.log("🔎 /statusCook Fuseki:", JSON.stringify(r.data, null, 2));
+    const r = await axios.post(
+      FUSEKI_QUERY,
+      `query=${encodeURIComponent(query)}`,
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
 
     const b = r.data.results.bindings[0] || {};
 
@@ -114,41 +119,6 @@ router.get("/statusCook", async (req, res) => {
     res.status(500).json({ error: true });
   }
 });
-
-// ==================== Helper: getCookStatus ====================
-async function getCookStatus() {
-  const query = `
-    PREFIX : <http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#>
-    SELECT ?fanStatus ?buzzStatus WHERE {
-      OPTIONAL { :act_AC_Exhaust :M_hasActionStatus ?fanStatus. }
-      OPTIONAL { :act_AC_Buzzer :M_hasActionStatus ?buzzStatus. }
-    }
-  `;
-
-  try {
-    const res = await axios.post(
-      FUSEKI_QUERY,
-      `query=${encodeURIComponent(query)}`,
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
-    );
-
-    console.log("🔎 Fuseki response:", JSON.stringify(res.data, null, 2));
-
-    let fan = "OFF";
-    let buzzer = "OFF";
-
-    const bindings = res.data.results.bindings[0];
-    if (bindings?.fanStatus?.value.endsWith("st_actON")) fan = "ON";
-    if (bindings?.buzzStatus?.value.endsWith("st_actON")) buzzer = "ON";
-
-    return { fan, buzzer };
-  } catch (err) {
-    console.error("❌ statusCook error:", err.message);
-    return { fan: "OFF", buzzer: "OFF" };
-  }
-}
 
 // ==================== GET Latest Sensor Update ====================
 router.get("/latest", (req, res) => {
