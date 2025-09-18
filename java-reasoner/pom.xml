@@ -15,7 +15,14 @@
   </properties>
 
   <dependencies>
-    <!-- OWL API -->
+    <!-- OWL API (inti) -->
+    <dependency>
+      <groupId>net.sourceforge.owlapi</groupId>
+      <artifactId>owlapi-apibinding</artifactId>
+      <version>5.1.9</version>
+    </dependency>
+
+    <!-- OWL API (lengkap, opsional jika perlu tool tambahan) -->
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-distribution</artifactId>
@@ -60,6 +67,14 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>1.7.36</version>
+    </dependency>
+
+    <!-- Apache Jena (opsional, untuk query SPARQL SELECT/CONSTRUCT langsung ke Fuseki) -->
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>apache-jena-libs</artifactId>
+      <version>4.10.0</version>
+      <type>pom</type>
     </dependency>
   </dependencies>
 

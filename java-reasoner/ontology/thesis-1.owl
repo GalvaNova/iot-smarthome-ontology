@@ -206,7 +206,7 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ACdp_hasDISTvalue">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Dist"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
     </owl:DatatypeProperty>
     
 
@@ -215,7 +215,7 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ACdp_hasFIREvalue">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Flame"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
     </owl:DatatypeProperty>
     
 
@@ -224,7 +224,7 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ACdp_hasPPMvalue">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Ppm"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
     </owl:DatatypeProperty>
     
 
@@ -233,7 +233,7 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ACdp_hasTEMPvalue">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Temp"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
     </owl:DatatypeProperty>
     
 
@@ -242,7 +242,7 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AEdp_hasCOUNTvalue">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AE_PersonCount"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
     </owl:DatatypeProperty>
     
 
@@ -251,7 +251,7 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ASdp_hasDISTOBJvalue">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AS_DistObject"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
     </owl:DatatypeProperty>
     
 
@@ -260,7 +260,7 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#ASdp_hasDISTPERSvalue">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AS_DistPerson"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
     </owl:DatatypeProperty>
     
 
@@ -628,7 +628,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#read_AC_Dist">
         <rdf:type rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Dist"/>
-        <thesis-1:ACdp_hasDISTvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">244</thesis-1:ACdp_hasDISTvalue>
+        <thesis-1:ACdp_hasDISTvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</thesis-1:ACdp_hasDISTvalue>
     </owl:NamedIndividual>
     
 
@@ -637,7 +637,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#read_AC_Flame">
         <rdf:type rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Flame"/>
-        <thesis-1:ACdp_hasFIREvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0</thesis-1:ACdp_hasFIREvalue>
+        <thesis-1:ACdp_hasFIREvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</thesis-1:ACdp_hasFIREvalue>
     </owl:NamedIndividual>
     
 
@@ -646,7 +646,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#read_AC_Ppm">
         <rdf:type rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Ppm"/>
-        <thesis-1:ACdp_hasPPMvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">90</thesis-1:ACdp_hasPPMvalue>
+        <thesis-1:ACdp_hasPPMvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">700</thesis-1:ACdp_hasPPMvalue>
     </owl:NamedIndividual>
     
 
@@ -655,7 +655,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#read_AC_Temp">
         <rdf:type rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AC_Temp"/>
-        <thesis-1:ACdp_hasTEMPvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">4</thesis-1:ACdp_hasTEMPvalue>
+        <thesis-1:ACdp_hasTEMPvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">20</thesis-1:ACdp_hasTEMPvalue>
     </owl:NamedIndividual>
     
 
@@ -664,7 +664,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#read_AE_CountPers">
         <rdf:type rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AE_PersonCount"/>
-        <thesis-1:AEdp_hasCOUNTvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0</thesis-1:AEdp_hasCOUNTvalue>
+        <thesis-1:AEdp_hasCOUNTvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</thesis-1:AEdp_hasCOUNTvalue>
     </owl:NamedIndividual>
     
 
@@ -673,7 +673,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#read_AS_DistObject">
         <rdf:type rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AS_DistObject"/>
-        <thesis-1:ASdp_hasDISTOBJvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">111</thesis-1:ASdp_hasDISTOBJvalue>
+        <thesis-1:ASdp_hasDISTOBJvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">10</thesis-1:ASdp_hasDISTOBJvalue>
     </owl:NamedIndividual>
     
 
@@ -682,7 +682,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#read_AS_DistPerson">
         <rdf:type rdf:resource="http://www.semanticweb.org/msi/ontologies/2025/5/thesis-1#AS_DistPerson"/>
-        <thesis-1:ASdp_hasDISTPERSvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">111</thesis-1:ASdp_hasDISTPERSvalue>
+        <thesis-1:ASdp_hasDISTPERSvalue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">12</thesis-1:ASdp_hasDISTPERSvalue>
     </owl:NamedIndividual>
     
 
