@@ -1,144 +1,85 @@
 package com.smarthome;
 
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.ontology.*;
-import org.apache.jena.reasoner.*;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.util.FileManager;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFLanguages;
+import org.json.JSONObject;
+import openllet.jena.PelletReasonerFactory;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.rdf.model.InfModel;
 
-import spark.Spark;
-
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import static spark.Spark.*;
 
 public class SmartHomeReasoner {
 
-    private static final String ONTOLOGY_FILE = "ontology/thesis-1.owl"; // sesuaikan path OWL
+    private static final String ONTOLOGY_PATH = "ontology/thesis-1.owl";
+    private static final String NS = "http://www.semanticweb.org/ontologies/2024/smarthome#";
+
+    // Simpan model global biar bisa dipakai juga di /debug/triples
     private static OntModel baseModel;
+    private static InfModel infModel;
 
     public static void main(String[] args) {
-        try {
-            // ================================
-            // Load base ontology (tanpa data sensor)
-            // ================================
-            baseModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
-            InputStream in = FileManager.get().open(ONTOLOGY_FILE);
-            if (in == null) {
-                throw new IllegalArgumentException("File ontology tidak ditemukan: " + ONTOLOGY_FILE);
+        System.out.println("🚀 Java Reasoner service starting...");
+
+        // Load ontologi
+        baseModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+        FileManager.get().readModel(baseModel, ONTOLOGY_PATH);
+
+        // Setup reasoner Pellet
+        Reasoner reasoner = PelletReasonerFactory.theInstance().create();
+        infModel = ModelFactory.createInfModel(reasoner, baseModel);
+
+        // ========== Route utama untuk reasoning ==========
+        post("/reasoning/areaWash", (req, res) -> {
+            res.type("application/json");
+            try {
+                JSONObject json = new JSONObject(req.body());
+                double jarak1 = json.optDouble("jarak1", -1);
+                double jarak2 = json.optDouble("jarak2", -1);
+
+                // lakukan reasoning sederhana
+                String status = getActivityStatus(jarak1, jarak2);
+
+                JSONObject response = new JSONObject();
+                response.put("message", "Wash data stored");
+                response.put("status", status);
+                return response.toString();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                res.status(500);
+                return new JSONObject().put("error", "Reasoner failed").toString();
             }
-            baseModel.read(in, null);
+        });
 
-            System.out.println("✅ Base ontology loaded (without sensor data).");
+        // ========== Route debug untuk lihat triple ==========
+        get("/debug/triples", (req, res) -> {
+            res.type("text/plain");
+            StringBuilder sb = new StringBuilder();
+            StmtIterator iter = infModel.listStatements();
+            while (iter.hasNext()) {
+                Statement stmt = iter.nextStatement();
+                sb.append(stmt.toString()).append("\n");
+            }
+            return sb.toString();
+        });
 
-            // Reset actuator awal
-            resetActuators(baseModel);
-
-            // ================================
-            // Jalankan Reasoner REST service
-            // ================================
-            Spark.port(4567);
-            Spark.post("/reasoning/cook", (req, res) -> {
-                res.type("application/json");
-                String body = req.body();
-
-                try {
-                    return runReasoning(body);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    res.status(500);
-                    return "{ \"error\": \"" + e.getMessage() + "\" }";
-                }
-            });
-
-            System.out.println("✅ Reasoner service running at http://localhost:4567");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println("✅ Reasoner service running at http://localhost:4567/reasoning/areaWash");
     }
 
-    // ======================================
-    // Jalankan reasoning berdasarkan RDF input
-    // ======================================
-    private static String runReasoning(String rdfInput) throws Exception {
-        // Buat model sementara untuk sensor data
-        Model sensorModel = ModelFactory.createDefaultModel();
-
-        // Deteksi format RDF secara otomatis
-        Lang lang = RDFLanguages.contentTypeToLang("text/turtle"); // default Turtle
-        if (rdfInput.trim().startsWith("{")) {
-            lang = Lang.JSONLD;
-        } else if (rdfInput.contains("rdf:RDF")) {
-            lang = Lang.RDFXML;
-        } else if (rdfInput.contains("@prefix") || rdfInput.contains("^^")) {
-            lang = Lang.TURTLE;
-        } else if (rdfInput.contains("<") && rdfInput.contains(">")) {
-            lang = Lang.NTRIPLES;
+    /**
+     * Fungsi sederhana untuk cek status activity berdasarkan input sensor.
+     * Misalnya kalau ada objek < 10cm dan ada orang < 50cm → aktif
+     */
+    private static String getActivityStatus(double jarak1, double jarak2) {
+        if (jarak1 >= 0 && jarak1 < 10 && jarak2 >= 0 && jarak2 < 50) {
+            return "st_actON";  // contoh rule aktif
+        } else {
+            return "unknown";  // default kalau tidak cocok
         }
-
-        // Parse RDF ke dalam model
-        try (InputStream is = new ByteArrayInputStream(rdfInput.getBytes())) {
-            RDFDataMgr.read(sensorModel, is, lang);
-        }
-
-        // Gabungkan sensor data ke ontology model
-        OntModel combined = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
-        combined.add(baseModel);
-        combined.add(sensorModel);
-
-        // Terapkan reasoning (gunakan Jena built-in rules)
-        InfModel infModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), combined);
-
-        // ================================
-        // Ambil hasil reasoning (contoh: status AC dan cooking activity)
-        // ================================
-        Map<String, String> result = new HashMap<>();
-
-        String ns = "http://www.semanticweb.org/smarthome#";
-        Resource acExhaust = infModel.getResource(ns + "act_AC_Exhaust");
-        Property hasActionStatus = infModel.getProperty(ns + "M_hasActionStatus");
-        Statement acStatusStmt = acExhaust.getProperty(hasActionStatus);
-        if (acStatusStmt != null) {
-            result.put("act_AC_Exhaust_action", acStatusStmt.getObject().toString());
-        }
-
-        Resource cookAct = infModel.getResource(ns + "fnc_cookAct");
-        Property hasActivityStatus = infModel.getProperty(ns + "M_hasActivityStatus");
-        Statement cookStmt = cookAct.getProperty(hasActivityStatus);
-        if (cookStmt != null) {
-            result.put("fnc_cookAct_activity", cookStmt.getObject().toString());
-        }
-
-        // ================================
-        // Konversi hasil ke JSON string
-        // ================================
-        StringBuilder json = new StringBuilder("{");
-        int i = 0;
-        for (Map.Entry<String, String> entry : result.entrySet()) {
-            if (i > 0) json.append(",");
-            json.append("\"").append(entry.getKey()).append("\": \"")
-                .append(entry.getValue()).append("\"");
-            i++;
-        }
-        json.append("}");
-
-        return json.toString();
-    }
-
-    // ======================================
-    // Reset semua actuator ke OFF saat startup
-    // ======================================
-    private static void resetActuators(OntModel model) {
-        String ns = "http://www.semanticweb.org/smarthome#";
-        Resource acExhaust = model.getResource(ns + "act_AC_Exhaust");
-        Property hasActionStatus = model.getProperty(ns + "M_hasActionStatus");
-        if (acExhaust != null && hasActionStatus != null) {
-            acExhaust.removeAll(hasActionStatus);
-            acExhaust.addProperty(hasActionStatus, ns + "st_actOFF");
-        }
-        System.out.println("✅ Initial actuator reset: all OFF");
     }
 }
